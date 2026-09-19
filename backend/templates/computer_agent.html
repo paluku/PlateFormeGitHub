@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>🖥️ ComputerAgent - Test simple</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 2rem; margin-bottom: 10px; }
+        .header p { opacity: 0.9; }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .card h3 { color: #333; margin-bottom: 15px; }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+            margin: 5px;
+            transition: 0.3s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-blue { background: #2a5298; }
+        .btn-green { background: #28a745; }
+        .btn-orange { background: #ff922b; }
+        .btn-purple { background: #6f42c1; }
+        
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+        textarea:focus { outline: none; border-color: #2a5298; }
+        
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+        
+        .log .time { color: #888; }
+        .log .success { color: #00ff44; }
+        .log .error { color: #ff4444; }
+        .log .info { color: #44aaff; }
+        
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        
+        .preview {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 2px solid #e9ecef;
+            display: none;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2a5298;
+        }
+        .step .number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #2a5298;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        .step .title {
+            font-weight: 700;
+            color: #333;
+            font-size: 1.05rem;
+        }
+        .step .desc {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ ComputerAgent - Test simple</h1>
+            <p>Chaque bouton déclenche une action sur votre ordinateur</p>
+        </div>
+
+        <!-- ÉTAPE 1 : INFO ÉCRAN -->
+        <div class="card">
+            <div class="step">
+                <span class="number">1</span>
+                <span class="title">📺 Info écran</span>
+                <div class="desc">
+                    Récupère la taille de votre écran (largeur x hauteur).
+                    <br>→ Appelle <code>/api/computer/screen</code>
+                </div>
+            </div>
+            <button class="btn btn-blue" onclick="getScreenInfo()">📺 Voir la taille de l'écran</button>
+            <div id="screenStatus" class="status info">Cliquez sur le bouton</div>
+        </div>
+
+        <!-- ÉTAPE 2 : OUVRIR NOTEPAD -->
+        <div class="card">
+            <div class="step">
+                <span class="number">2</span>
+                <span class="title">🚀 Ouvrir Notepad</span>
+                <div class="desc">
+                    Lance l'application Notepad sur votre ordinateur.
+                    <br>→ Appelle <code>/api/computer/open-notepad</code>
+                    <br>→ Python fait <code>subprocess.Popen(['notepad.exe'])</code>
+                </div>
+            </div>
+            <button class="btn btn-green" onclick="openNotepad()">🚀 Ouvrir Notepad</button>
+            <div id="notepadStatus" class="status info">Cliquez sur le bouton</div>
+        </div>
+
+        <!-- ÉTAPE 3 : ÉCRIRE DU TEXTE -->
+        <div class="card">
+            <div class="step">
+                <span class="number">3</span>
+                <span class="title">✍️ Écrire du texte</span>
+                <div class="desc">
+                    Tape du texte au clavier, comme si vous tapiez vous-même.
+                    <br>→ Appelle <code>/api/computer/write-text</code>
+                    <br>→ Python fait <code>pyautogui.write(text)</code>
+                </div>
+            </div>
+            <textarea id="textInput" rows="3">Bonjour, ceci est un test automatique.</textarea>
+            <button class="btn btn-orange" onclick="writeText()">✍️ Écrire le texte</button>
+            <div id="writeStatus" class="status info">Cliquez sur le bouton</div>
+        </div>
+
+        <!-- ÉTAPE 4 : ENTRÉE -->
+        <div class="card">
+            <div class="step">
+                <span class="number">4</span>
+                <span class="title">↵ Appuyer sur Entrée</span>
+                <div class="desc">
+                    Simule l'appui sur la touche Entrée.
+                    <br>→ Appelle <code>/api/computer/press-enter</code>
+                    <br>→ Python fait <code>pyautogui.press('enter')</code>
+                </div>
+            </div>
+            <button class="btn btn-orange" onclick="pressEnter()">↵ Appuyer sur Entrée</button>
+            <div id="enterStatus" class="status info">Cliquez sur le bouton</div>
+        </div>
+
+        <!-- ÉTAPE 5 : CAPTURE D'ÉCRAN -->
+        <div class="card">
+            <div class="step">
+                <span class="number">5</span>
+                <span class="title">📸 Capture d'écran</span>
+                <div class="desc">
+                    Prend une photo de votre écran et l'enregistre.
+                    <br>→ Appelle <code>/api/computer/screenshot</code>
+                    <br>→ Python fait <code>pyautogui.screenshot()</code>
+                </div>
+            </div>
+            <button class="btn btn-purple" onclick="takeScreenshot()">📸 Faire une capture</button>
+            <div id="screenshotStatus" class="status info">Cliquez sur le bouton</div>
+            <img id="screenshotPreview" class="preview" alt="Capture d'écran">
+        </div>
+
+        <!-- JOURNAL -->
+        <div class="card">
+            <h3>📋 Journal des actions</h3>
+            <div id="log" class="log">
+<span class="info">[Prêt] En attente d'actions...</span>
+            </div>
+            <button class="btn btn-blue" onclick="clearLog()" style="margin-top:10px;">🗑️ Effacer</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // LOGGER
+        // ============================================
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `<span class="time">[${time}]</span> <span class="${type}">${message}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function setStatus(id, message, type) {
+            const el = document.getElementById(id);
+            el.className = 'status ' + type;
+            el.textContent = message;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '<span class="info">[Prêt] En attente d\'actions...</span>';
+        }
+
+        // ============================================
+        // 1. INFO ÉCRAN
+        // ============================================
+        async function getScreenInfo() {
+            log('📺 Récupération de la taille de l\'écran...');
+            
+            try {
+                const response = await fetch('/api/computer/screen');
+                const data = await response.json();
+                
+                if (data.error) {
+                    setStatus('screenStatus', '❌ ' + data.error, 'error');
+                    log('❌ ' + data.error, 'error');
+                } else {
+                    setStatus('screenStatus', `✅ Écran: ${data.width} x ${data.height}`, 'success');
+                    log(`✅ Écran détecté: ${data.width}x${data.height}`, 'success');
+                }
+            } catch (error) {
+                setStatus('screenStatus', '❌ ' + error.message, 'error');
+                log('❌ ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // 2. OUVRIR NOTEPAD
+        // ============================================
+        async function openNotepad() {
+            log('🚀 Ouverture de Notepad...');
+            setStatus('notepadStatus', '⏳ Ouverture...', 'info');
+            
+            try {
+                const response = await fetch('/api/computer/open-notepad', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    setStatus('notepadStatus', `✅ ${data.message}`, 'success');
+                    log(`✅ ${data.message}`, 'success');
+                } else {
+                    setStatus('notepadStatus', '❌ ' + data.error, 'error');
+                    log('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                setStatus('notepadStatus', '❌ ' + error.message, 'error');
+                log('❌ ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // 3. ÉCRIRE DU TEXTE
+        // ============================================
+        async function writeText() {
+            const text = document.getElementById('textInput').value;
+            
+            if (!text) {
+                setStatus('writeStatus', '⚠️ Entrez du texte', 'error');
+                return;
+            }
+            
+            log(`✍️ Écriture: "${text.substring(0, 30)}..."`);
+            setStatus('writeStatus', '⏳ Écriture...', 'info');
+            
+            try {
+                const response = await fetch('/api/computer/write-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    setStatus('writeStatus', `✅ ${data.message}`, 'success');
+                    log(`✅ ${data.message}`, 'success');
+                } else {
+                    setStatus('writeStatus', '❌ ' + data.error, 'error');
+                    log('❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                setStatus('writeStatus', '❌ ' + error.message, 'error');
+                log('❌ ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // 4. APPUYER SUR ENTRÉE
+        // ============================================
+        async function pressEnter() {
+            log('↵ Appui sur Entrée...');
+            
+            try {
+                const response = await fetch('/api/computer/press-enter', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    setStatus('enterStatus', '✅ ' + data.message, 'success');
+                    log('✅ ' + data.message, 'success');
+                } else {
+                    setStatus('enterStatus', '❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                setStatus('enterStatus', '❌ ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // 5. CAPTURE D'ÉCRAN
+        // ============================================
+        async function takeScreenshot() {
+            log('📸 Capture d\'écran...');
+            setStatus('screenshotStatus', '⏳ Capture...', 'info');
+            
+            try {
+                const response = await fetch('/api/computer/screenshot', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    setStatus('screenshotStatus', `✅ ${data.message}`, 'success');
+                    log(`✅ ${data.message}`, 'success');
+                    
+                    // Afficher l'aperçu
+                    const preview = document.getElementById('screenshotPreview');
+                    preview.src = data.url + '?t=' + Date.now();
+                    preview.style.display = 'block';
+                } else {
+                    setStatus('screenshotStatus', '❌ ' + data.error, 'error');
+                }
+            } catch (error) {
+                setStatus('screenshotStatus', '❌ ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

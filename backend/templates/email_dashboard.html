@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📧 Email Agent - Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header .back-btn {
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+        .header .back-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px 30px;
+            flex: 1;
+            min-width: 150px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        .stat-card .label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .actions button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+
+        .email-list {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .email-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .email-item:hover {
+            background: #f8f9fa;
+        }
+        .email-item .info {
+            flex: 1;
+        }
+        .email-item .info .from {
+            font-weight: 600;
+        }
+        .email-item .info .subject {
+            color: #333;
+            margin: 4px 0;
+        }
+        .email-item .info .summary {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .email-item .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .badge-urgence-haute { background: #ff6b6b; color: white; }
+        .badge-urgence-moyenne { background: #ffa94d; color: white; }
+        .badge-urgence-basse { background: #51cf66; color: white; }
+        .badge-categorie { background: #e9ecef; color: #333; }
+        .badge-action { background: #667eea; color: white; }
+        .badge-non-traite { background: #ffc107; color: #212529; }
+        .badge-traite { background: #28a745; color: white; }
+
+        .email-detail {
+            margin-top: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .email-detail .header-detail {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .email-detail .body-detail {
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .email-detail .response-area {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .email-detail .response-area strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 768px) {
+            .email-item { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .stats { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- En-tête -->
+    <div class="header">
+        <h1>📧 Email Agent Dashboard</h1>
+        <a href="/" class="back-btn">← Retour</a>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats" id="statsContainer">
+        <div class="stat-card">
+            <div class="number" id="totalCount">0</div>
+            <div class="label">Total emails</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="unprocessedCount">0</div>
+            <div class="label">À traiter</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="urgentCount">0</div>
+            <div class="label">Urgents</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" id="processedCount">0</div>
+            <div class="label">Traités</div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+        <button class="btn-primary" id="refreshBtn">🔄 Rafraîchir</button>
+        <button class="btn-success" id="processAllBtn">⚡ Analyser tous les emails</button>
+        <button class="btn-warning" id="addEmailBtn">📝 Ajouter un email</button>
+        <button class="btn-danger" id="clearAllBtn">🗑️ Supprimer tout</button>
+    </div>
+
+    <!-- Liste des emails -->
+    <div class="email-list">
+        <h3 style="margin-bottom: 15px;">📥 Boîte de réception</h3>
+        <div id="emailListContainer">
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <p>Aucun email pour le moment</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Détail d'un email (affiché lors du clic) -->
+    <div class="email-detail" id="emailDetail">
+        <div class="header-detail">
+            <div>
+                <strong id="detailFrom">Expéditeur</strong><br>
+                <span id="detailSubject" style="font-size:1.1rem;">Sujet</span>
+            </div>
+            <div>
+                <span id="detailBadgeUrgency" class="badge badge-urgence-moyenne">Urgence</span>
+                <span id="detailBadgeCategory" class="badge badge-categorie">Catégorie</span>
+                <span id="detailBadgeAction" class="badge badge-action">Action</span>
+                <span id="detailBadgeStatus" class="badge badge-non-traite">Statut</span>
+            </div>
+        </div>
+        <div class="body-detail" id="detailBody">Contenu de l'email...</div>
+        <div class="response-area" id="detailResponse" style="display:none;">
+            <strong>🤖 Réponse générée :</strong>
+            <div id="detailResponseText"></div>
+        </div>
+        <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn-primary" id="detailProcessBtn">🔍 Analyser</button>
+            <button class="btn-success" id="detailGenerateBtn">✍️ Générer réponse</button>
+            <button class="btn-danger" id="detailDeleteBtn">🗑️ Supprimer</button>
+            <button class="btn-warning" id="detailCloseBtn">✖ Fermer</button>
+        </div>
+    </div>
+</div>
+
+<!-- Script spécifique -->
+<script src="{{ url_for('static', filename='email.js') }}"></script>
+</body>
+</html>

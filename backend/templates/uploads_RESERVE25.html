@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📄 Gestion multi-fichiers</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        .header h1 { font-size: 2.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.1rem; opacity: 0.9; }
+        
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .card h3 { color: #333; margin-bottom: 15px; }
+        
+        .flex-row { display: flex; gap: 15px; flex-wrap: wrap; }
+        .flex-1 { flex: 1; min-width: 200px; }
+        .flex-2 { flex: 2; min-width: 300px; }
+        
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            margin: 10px 0;
+            background: white;
+        }
+        input[type="file"][multiple] {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+        input[type="text"] {
+            padding: 10px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            flex: 1;
+            min-width: 150px;
+        }
+        input[type="text"]:focus { outline: none; border-color: #667eea; }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-sm { font-size: 0.75rem; padding: 4px 12px; }
+        
+        .btn-upload { background: #28a745; }
+        .btn-upload:hover { background: #218838; }
+        .btn-refresh { background: #667eea; }
+        .btn-refresh:hover { background: #5a67d8; }
+        .btn-clear { background: #dc3545; }
+        .btn-clear:hover { background: #c82333; }
+        .btn-read { background: #667eea; }
+        .btn-read:hover { background: #5a67d8; }
+        .btn-summarize { background: #ff922b; }
+        .btn-summarize:hover { background: #e67e22; }
+        .btn-download { background: #28a745; }
+        .btn-download:hover { background: #218838; }
+        .btn-delete { background: #dc3545; }
+        .btn-delete:hover { background: #c82333; }
+        .btn-primary { background: #667eea; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ff922b; }
+        .btn-warning:hover { background: #e67e22; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .file-item {
+            padding: 10px 12px;
+            margin: 2px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .file-item:hover { background: #e9ecef; }
+        .file-item .name { font-weight: 500; }
+        .file-item .actions { display: flex; gap: 5px; flex-wrap: wrap; }
+        .file-item .btn { font-size: 0.75rem; padding: 4px 12px; }
+        
+        .file-content {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-top: 10px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .status {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .status.loading { background: #cce5ff; color: #004085; border: 1px solid #b8daff; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        .error-log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 10px;
+        }
+        .error-log .timestamp { color: #888; }
+        .error-log .error { color: #ff4444; }
+        .error-log .warn { color: #ffaa00; }
+        .error-log .success { color: #00ff44; }
+        .error-log .info { color: #44aaff; }
+        
+        .divider { border: none; border-top: 2px solid #e9ecef; margin: 15px 0; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 600; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        
+        @media (max-width: 768px) {
+            .flex-row { flex-direction: column; }
+            .file-item { flex-direction: column; align-items: stretch; }
+            .file-item .actions { justify-content: center; }
+            .header h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Gestion multi-fichiers</h1>
+            <p>Uploader, lire, résumer avec IA et gérer vos fichiers</p>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION UPLOAD -->
+        <!-- ========================================== -->
+        <div class="card">
+            <h3>📤 Uploader un ou plusieurs fichiers</h3>
+            <p style="color:#666; font-size:0.9rem; margin-bottom:10px;">
+                Formats supportés : PDF, DOCX, DOC, XLSX, XLS, CSV, TXT, JSON, PPTX, PPT, JPG, PNG, ZIP
+            </p>
+            <input type="file" id="fileInput" multiple accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.txt,.json,.pptx,.ppt,.jpg,.png,.zip">
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+                <button class="btn btn-upload" onclick="uploadFiles()">📤 Uploader</button>
+                <button class="btn btn-refresh" onclick="listFiles()">🔄 Rafraîchir</button>
+                <button class="btn btn-danger" onclick="clearAllFiles()">🗑️ Effacer tout</button>
+                <button class="btn btn-success" onclick="uploadAndAnalyze()">🚀 Upload + Lire</button>
+                <button class="btn btn-warning" onclick="uploadAndSummarize()">🚀 Upload + Résumer</button>
+            </div>
+            <div id="uploadStatus" class="status">📭 Aucun fichier sélectionné</div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION LISTE DES FICHIERS -->
+        <!-- ========================================== -->
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <h3>📁 Fichiers disponibles</h3>
+                <span id="fileCount" style="color:#666; font-size:0.9rem;">0 fichier(s)</span>
+            </div>
+            <div id="fileList" class="file-list">
+                <p style="color:#888; text-align:center; padding:20px;">📭 Aucun fichier uploadé</p>
+            </div>
+            <div id="fileStatus" class="status"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION LECTURE / RÉSUMÉ -->
+        <!-- ========================================== -->
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <h3>📖 Lecture / Résumé</h3>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; flex:1;">
+                    <input type="text" id="fileNameInput" placeholder="Nom du fichier (ou plusieurs séparés par ,)" style="flex:2; min-width:150px;">
+                    <button class="btn btn-read" onclick="readFileManually()">📖 Lire</button>
+                    <button class="btn btn-summarize" onclick="summarizeSingleFile()">🤖 Résumer</button>
+                    <button class="btn btn-primary" onclick="readMultipleFiles()">📚 Lire tout</button>
+                    <button class="btn btn-warning" onclick="summarizeMultipleFiles()">🤖 Résumer tout</button>
+                </div>
+            </div>
+            <hr class="divider">
+            <div id="fileContentDisplay" class="file-content">
+                <p style="color:#888;">📖 Entrez un nom de fichier et cliquez sur "Lire" ou "Résumer avec IA"</p>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION JOURNAL DES ERREURS -->
+        <!-- ========================================== -->
+        <div class="card" style="border-left: 4px solid #dc3545;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+                <h3 style="color:#dc3545;">⚠️ Journal des erreurs</h3>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-sm" onclick="clearErrorLog()" style="background:#6c757d; color:white; padding:4px 12px;">🗑️ Effacer</button>
+                    <button class="btn btn-sm" onclick="exportErrorLog()" style="background:#667eea; color:white; padding:4px 12px;">📥 Exporter</button>
+                </div>
+            </div>
+            <div id="errorLog" class="error-log">📋 Journal des erreurs prêt...</div>
+        </div>
+    </div>
+
+    <!-- ============================================= -->
+    <!-- JAVASCRIPT COMPLET -->
+    <!-- ============================================= -->
+    <script>
+        // ============================================================
+        //  CONFIGURATION
+        // ============================================================
+        const FileReaderConfig = {
+            maxFiles: 20,
+            maxSizeMB: 50,
+            supportedFormats: [
+                '.pdf', '.docx', '.doc', '.xlsx', '.xls', 
+                '.csv', '.txt', '.json', '.pptx', '.ppt',
+                '.jpg', '.png', '.zip'
+            ]
+        };
+
+        // ============================================================
+        //  LOGGER
+        // ============================================================
+        const ErrorLogger = {
+            logs: [],
+            maxLogs: 100,
+
+            log(message, type = 'INFO') {
+                const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+                const entry = { timestamp, message, type };
+                this.logs.unshift(entry);
+                if (this.logs.length > this.maxLogs) {
+                    this.logs.pop();
+                }
+                this.render();
+                console.log(`[${timestamp}] [${type}] ${message}`);
+            },
+
+            error(message) { this.log(`❌ ${message}`, 'ERROR'); },
+            warn(message) { this.log(`⚠️ ${message}`, 'WARN'); },
+            info(message) { this.log(`ℹ️ ${message}`, 'INFO'); },
+            success(message) { this.log(`✅ ${message}`, 'SUCCESS'); },
+
+            render() {
+                const container = document.getElementById('errorLog');
+                if (!container) return;
+                
+                let html = '';
+                for (const entry of this.logs) {
+                    const colorClass = entry.type === 'ERROR' ? 'error' :
+                                      entry.type === 'WARN' ? 'warn' :
+                                      entry.type === 'SUCCESS' ? 'success' : 'info';
+                    html += `<span class="timestamp">[${entry.timestamp}]</span> <span class="${colorClass}">[${entry.type}]</span> ${this.escapeHtml(entry.message)}\n`;
+                }
+                container.innerHTML = html || '📋 Aucune erreur';
+            },
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            },
+
+            clear() {
+                this.logs = [];
+                this.render();
+            },
+
+            getText() {
+                return this.logs.map(e => `[${e.timestamp}] [${e.type}] ${e.message}`).join('\n');
+            }
+        };
+
+        // =============================================
+        // 1. UPLOADER PLUSIEURS FICHIERS
+        // =============================================
+        async function uploadFiles() {
+            const input = document.getElementById('fileInput');
+            const files = input.files;
+            
+            ErrorLogger.info(`📤 Début upload - ${files.length} fichier(s)`);
+
+            if (files.length === 0) {
+                ErrorLogger.warn('⚠️ Aucun fichier sélectionné');
+                setStatus('uploadStatus', '⚠️ Sélectionnez au moins un fichier !', 'error');
+                return;
+            }
+            
+            if (files.length > FileReaderConfig.maxFiles) {
+                ErrorLogger.warn(`⚠️ Trop de fichiers: ${files.length} (max ${FileReaderConfig.maxFiles})`);
+                setStatus('uploadStatus', `⚠️ Maximum ${FileReaderConfig.maxFiles} fichiers`, 'error');
+                return;
+            }
+
+            setStatus('uploadStatus', `⏳ Upload de ${files.length} fichier(s)...`, 'loading');
+            
+            let successCount = 0;
+            let errorCount = 0;
+            const errors = [];
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const sizeMB = file.size / (1024 * 1024);
+                
+                if (sizeMB > FileReaderConfig.maxSizeMB) {
+                    ErrorLogger.error(`[${file.name}] Taille ${sizeMB.toFixed(1)} Mo > ${FileReaderConfig.maxSizeMB} Mo`);
+                    errors.push(`${file.name}: fichier trop gros`);
+                    errorCount++;
+                    continue;
+                }
+
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                ErrorLogger.info(`[${i+1}/${files.length}] Upload ${file.name} (${sizeMB.toFixed(1)} MB)`);
+                
+                try {
+                    const response = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const data = await response.json();
+                    
+                    if (response.ok && data.success) {
+                        ErrorLogger.success(`[${file.name}] Upload réussi`);
+                        successCount++;
+                    } else {
+                        ErrorLogger.error(`[${file.name}] ${data.error || 'Erreur'}`);
+                        errors.push(`${file.name}: ${data.error || 'Erreur'}`);
+                        errorCount++;
+                    }
+                } catch (error) {
+                    ErrorLogger.error(`[${file.name}] ${error.message}`);
+                    errors.push(`${file.name}: ${error.message}`);
+                    errorCount++;
+                }
+            }
+
+            ErrorLogger.info(`📊 Upload terminé: ${successCount} succès, ${errorCount} échecs`);
+            
+            if (errorCount > 0) {
+                setStatus('uploadStatus', `✅ ${successCount} | ❌ ${errorCount} erreur(s) - Voir journal`, 'warning');
+            } else {
+                setStatus('uploadStatus', `✅ ${successCount} fichier(s) uploadé(s) avec succès !`, 'success');
+            }
+            
+            listFiles();
+            document.getElementById('fileInput').value = '';
+        }
+
+        // =============================================
+        // 2. LISTER LES FICHIERS
+        // =============================================
+        async function listFiles() {
+            ErrorLogger.info('🔄 Récupération de la liste...');
+            
+            try {
+                const response = await fetch('/api/files');
+                const data = await response.json();
+                
+                const container = document.getElementById('fileList');
+                document.getElementById('fileCount').textContent = `${data.files?.length || 0} fichier(s)`;
+                
+                if (data.files && data.files.length > 0) {
+                    container.innerHTML = data.files.map(file => {
+                        const encoded = encodeURIComponent(file);
+                        const ext = file.split('.').pop().toLowerCase();
+                        const icon = getFileIcon(ext);
+                        return `
+                            <div class="file-item">
+                                <span class="name">${icon} ${file}</span>
+                                <div class="actions">
+                                    <button class="btn btn-read btn-sm" onclick="readFile('${encoded}')">📖</button>
+                                    <button class="btn btn-summarize btn-sm" onclick="summarizeFileFromList('${encoded}')">🤖</button>
+                                    <button class="btn btn-download btn-sm" onclick="downloadFile('${encoded}')">⬇️</button>
+                                    <button class="btn btn-delete btn-sm" onclick="deleteFile('${encoded}')">🗑️</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    container.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">📭 Aucun fichier</p>';
+                }
+                ErrorLogger.info(`📁 ${data.files?.length || 0} fichier(s) trouvé(s)`);
+            } catch (error) {
+                ErrorLogger.error(`listFiles: ${error.message}`);
+                document.getElementById('fileList').innerHTML = `❌ ${error.message}`;
+            }
+        }
+
+        // =============================================
+        // 3. ICÔNE PAR EXTENSION
+        // =============================================
+        function getFileIcon(ext) {
+            const icons = {
+                'pdf': '📄', 'docx': '📝', 'doc': '📝', 'odt': '📝',
+                'xlsx': '📊', 'xls': '📊', 'csv': '📊', 'ods': '📊',
+                'pptx': '📑', 'ppt': '📑',
+                'txt': '📃', 'rtf': '📃',
+                'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️',
+                'zip': '📦', 'rar': '📦',
+                'html': '🌐', 'xml': '🌐', 'json': '📋',
+                'py': '🐍', 'js': '⚡', 'css': '🎨'
+            };
+            return icons[ext] || '📁';
+        }
+
+        // =============================================
+        // 4. LECTURE / RÉSUMÉ
+        // =============================================
+        async function readFile(filename) {
+            document.getElementById('fileNameInput').value = decodeURIComponent(filename);
+            await readFileManually();
+        }
+
+        async function readFileManually() {
+            const filename = document.getElementById('fileNameInput').value.trim();
+            if (!filename) { 
+                ErrorLogger.warn('⚠️ Entrez un nom de fichier');
+                alert('⚠️ Entrez un nom de fichier !'); 
+                return; 
+            }
+            
+            ErrorLogger.info(`📖 Lecture: ${filename}`);
+            const display = document.getElementById('fileContentDisplay');
+            display.innerHTML = '⏳ Lecture en cours...';
+            display.style.color = '#856404';
+
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Lis le fichier ${filename}`,
+                        agent: 'filereader',
+                        conversation_id: 1
+                    })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    display.innerHTML = `📄 **${filename}**\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.response}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 Lecture réussie`;
+                    display.style.color = '#333';
+                    ErrorLogger.success(`✅ Lecture: ${filename}`);
+                } else {
+                    throw new Error(data.error || 'Erreur');
+                }
+            } catch (error) {
+                ErrorLogger.error(`❌ Lecture ${filename}: ${error.message}`);
+                display.innerHTML = `❌ ${error.message}`;
+                display.style.color = '#721c24';
+                setStatus('fileStatus', `❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function summarizeFileFromList(filename) {
+            document.getElementById('fileNameInput').value = decodeURIComponent(filename);
+            await summarizeSingleFile();
+        }
+
+        async function summarizeSingleFile() {
+            const filename = document.getElementById('fileNameInput').value.trim();
+            if (!filename) { 
+                ErrorLogger.warn('⚠️ Entrez un nom de fichier');
+                alert('⚠️ Entrez un nom de fichier !'); 
+                return; 
+            }
+            
+            ErrorLogger.info(`🤖 Résumé: ${filename}`);
+            const display = document.getElementById('fileContentDisplay');
+            display.innerHTML = '⏳ Génération du résumé...';
+            display.style.color = '#856404';
+
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Analyse et résume le fichier ${filename}. Donne les points clés.`,
+                        agent: 'filereader',
+                        conversation_id: 1
+                    })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    display.innerHTML = `🤖 **RÉSUMÉ: ${filename}**\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.response}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 Résumé IA`;
+                    display.style.color = '#333';
+                    ErrorLogger.success(`✅ Résumé: ${filename}`);
+                } else {
+                    throw new Error(data.error || 'Erreur');
+                }
+            } catch (error) {
+                ErrorLogger.error(`❌ Résumé ${filename}: ${error.message}`);
+                display.innerHTML = `❌ ${error.message}`;
+                display.style.color = '#721c24';
+                setStatus('fileStatus', `❌ ${error.message}`, 'error');
+            }
+        }
+
+        // =============================================
+        // 5. LECTURE / RÉSUMÉ MULTIPLES
+        // =============================================
+        async function readMultipleFiles() {
+            const input = document.getElementById('fileNameInput');
+            const filenames = input.value.split(',').map(f => f.trim()).filter(f => f);
+            
+            if (filenames.length === 0) {
+                ErrorLogger.warn('⚠️ Aucun fichier pour lecture multiple');
+                alert('⚠️ Entrez les noms des fichiers séparés par des virgules !');
+                return;
+            }
+            
+            if (filenames.length > FileReaderConfig.maxFiles) {
+                ErrorLogger.warn(`⚠️ Trop de fichiers: ${filenames.length}`);
+                alert(`⚠️ Maximum ${FileReaderConfig.maxFiles} fichiers`);
+                return;
+            }
+            
+            ErrorLogger.info(`📚 Lecture multiple: ${filenames.length} fichiers`);
+            const display = document.getElementById('fileContentDisplay');
+            display.innerHTML = `⏳ Lecture de ${filenames.length} fichiers...`;
+            display.style.color = '#856404';
+
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Lis et analyse ces fichiers: ${filenames.join(', ')}. Donne un résumé de chaque.`,
+                        agent: 'filereader',
+                        conversation_id: 1
+                    })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    display.innerHTML = `📚 **ANALYSE DE ${filenames.length} FICHIERS**\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.response}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 Analyse terminée`;
+                    display.style.color = '#333';
+                    ErrorLogger.success(`✅ Lecture multiple: ${filenames.length} fichiers`);
+                } else {
+                    throw new Error(data.error || 'Erreur');
+                }
+            } catch (error) {
+                ErrorLogger.error(`❌ Lecture multiple: ${error.message}`);
+                display.innerHTML = `❌ ${error.message}`;
+                display.style.color = '#721c24';
+                setStatus('fileStatus', `❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function summarizeMultipleFiles() {
+            const input = document.getElementById('fileNameInput');
+            const filenames = input.value.split(',').map(f => f.trim()).filter(f => f);
+            
+            if (filenames.length === 0) {
+                ErrorLogger.warn('⚠️ Aucun fichier pour résumé multiple');
+                alert('⚠️ Entrez les noms des fichiers séparés par des virgules !');
+                return;
+            }
+            
+            if (filenames.length > FileReaderConfig.maxFiles) {
+                ErrorLogger.warn(`⚠️ Trop de fichiers: ${filenames.length}`);
+                alert(`⚠️ Maximum ${FileReaderConfig.maxFiles} fichiers`);
+                return;
+            }
+            
+            ErrorLogger.info(`🤖 Résumé multiple: ${filenames.length} fichiers`);
+            const display = document.getElementById('fileContentDisplay');
+            display.innerHTML = `⏳ Résumé de ${filenames.length} fichiers...`;
+            display.style.color = '#856404';
+
+            try {
+                const response = await fetch('/api/chat/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Analyse et résume ces ${filenames.length} fichiers: ${filenames.join(', ')}. Pour chaque fichier, donne un résumé clair.`,
+                        agent: 'filereader',
+                        conversation_id: 1
+                    })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    display.innerHTML = `🤖 **RÉSUMÉ IA DE ${filenames.length} FICHIERS**\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.response}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📌 Résumé multi-fichiers`;
+                    display.style.color = '#333';
+                    ErrorLogger.success(`✅ Résumé multiple: ${filenames.length} fichiers`);
+                } else {
+                    throw new Error(data.error || 'Erreur');
+                }
+            } catch (error) {
+                ErrorLogger.error(`❌ Résumé multiple: ${error.message}`);
+                display.innerHTML = `❌ ${error.message}`;
+                display.style.color = '#721c24';
+                setStatus('fileStatus', `❌ ${error.message}`, 'error');
+            }
+        }
+
+        // =============================================
+        // 6. TÉLÉCHARGER / SUPPRIMER / EFFACER
+        // =============================================
+        async function downloadFile(filename) {
+            const decoded = decodeURIComponent(filename);
+            ErrorLogger.info(`⬇️ Téléchargement: ${decoded}`);
+            
+            try {
+                const response = await fetch(`/api/upload/${filename}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = decoded;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                ErrorLogger.success(`✅ Téléchargement: ${decoded}`);
+                setStatus('fileStatus', `✅ ${decoded} téléchargé`, 'success');
+            } catch (error) {
+                ErrorLogger.error(`❌ Téléchargement ${decoded}: ${error.message}`);
+                setStatus('fileStatus', `❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteFile(filename) {
+            const decoded = decodeURIComponent(filename);
+            if (!confirm(`🗑️ Supprimer "${decoded}" ?`)) return;
+            
+            ErrorLogger.info(`🗑️ Suppression: ${decoded}`);
+            
+            try {
+                const response = await fetch(`/api/files/${filename}`, { method: 'DELETE' });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    ErrorLogger.success(`✅ Supprimé: ${decoded}`);
+                    setStatus('fileStatus', `✅ ${data.message}`, 'success');
+                    listFiles();
+                } else {
+                    throw new Error(data.error || 'Erreur');
+                }
+            } catch (error) {
+                ErrorLogger.error(`❌ Suppression ${decoded}: ${error.message}`);
+                setStatus('fileStatus', `❌ ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllFiles() {
+            if (!confirm('🗑️ Supprimer TOUS les fichiers ?')) return;
+            
+            ErrorLogger.warn('🗑️ Suppression de tous les fichiers');
+            
+            try {
+                const response = await fetch('/api/files');
+                const data = await response.json();
+                
+                if (data.files && data.files.length > 0) {
+                    let count = 0;
+                    for (const file of data.files) {
+                        const del = await fetch(`/api/files/${encodeURIComponent(file)}`, { method: 'DELETE' });
+                        if (del.ok) count++;
+                    }
+                    ErrorLogger.success(`✅ ${count} fichier(s) supprimé(s)`);
+                    setStatus('fileStatus', `✅ ${count} fichiers supprimés`, 'success');
+                    listFiles();
+                    document.getElementById('fileContentDisplay').innerHTML = '<p style="color:#888;">📖 Prêt</p>';
+                } else {
+                    ErrorLogger.info('📭 Aucun fichier à supprimer');
+                    setStatus('fileStatus', '📭 Aucun fichier', 'info');
+                }
+            } catch (error) {
+                ErrorLogger.error(`❌ ClearAll: ${error.message}`);
+                setStatus('fileStatus', `❌ ${error.message}`, 'error');
+            }
+        }
+
+        // =============================================
+        // 7. UPLOAD + ANALYSE / RÉSUMÉ
+        // =============================================
+        async function uploadAndAnalyze() {
+            ErrorLogger.info('🚀 Mode: Upload + Analyse');
+            await uploadFiles();
+            setTimeout(() => {
+                const input = document.getElementById('fileInput');
+                if (input.files.length > 0) {
+                    const names = Array.from(input.files).map(f => f.name).join(', ');
+                    document.getElementById('fileNameInput').value = names;
+                    readMultipleFiles();
+                }
+            }, 1000);
+        }
+
+        async function uploadAndSummarize() {
+            ErrorLogger.info('🚀 Mode: Upload + Résumé');
+            await uploadFiles();
+            setTimeout(() => {
+                const input = document.getElementById('fileInput');
+                if (input.files.length > 0) {
+                    const names = Array.from(input.files).map(f => f.name).join(', ');
+                    document.getElementById('fileNameInput').value = names;
+                    summarizeMultipleFiles();
+                }
+            }, 1000);
+        }
+
+        // =============================================
+        // 8. UTILITAIRES
+        // =============================================
+        function setStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = 'status ' + type;
+        }
+
+        function clearErrorLog() {
+            ErrorLogger.clear();
+            document.getElementById('errorLog').innerHTML = '📋 Journal vidé';
+        }
+
+        function exportErrorLog() {
+            const text = ErrorLogger.getText();
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `error_log_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            ErrorLogger.info('📥 Journal exporté');
+        }
+
+        // =============================================
+        // INITIALISATION
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            ErrorLogger.info('📄 Page multi-fichiers chargée');
+            listFiles();
+            
+            document.getElementById('fileNameInput');
+			    
+				
+	</script>
+	<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</body>
+</html>

@@ -1,0 +1,41 @@
+2026-09-10 22:08:47 | INFO     | __init__() | 📧 Resend configuré (from: onboarding@resend.dev)
+2026-09-10 22:08:47 | INFO     | __init__() | 📁 Dossiers créés/vérifiés
+2026-09-10 22:08:47 | INFO     | __init__() | 🚀 PostAnalysisAgent initialisé
+2026-09-10 22:09:35 | DEBUG    | detect_actions() | 📧 Aucun email détecté
+2026-09-10 22:09:35 | INFO     | detect_actions() | 📅 1 date(s) détectée(s): ['25/09/2026']
+2026-09-10 22:09:35 | INFO     | detect_actions() | 💰 1 montant(s) détecté(s): ['2500 €']
+2026-09-10 22:09:35 | INFO     | detect_actions() | 📁 Type de document: devis
+2026-09-10 22:09:35 | INFO     | detect_actions() | ✅ 3 action(s) détectée(s)
+2026-09-10 22:09:35 | INFO     | execute_actions() | 🚀 Exécution de 3 action(s)...
+2026-09-10 22:09:35 | INFO     | execute_actions() | [1/3] Exécution: create_reminder
+2026-09-10 22:09:35 | INFO     | _create_reminder() | 📅 1 rappel(s) créé(s)
+2026-09-10 22:09:35 | INFO     | execute_actions() | ✅ [1/3] create_reminder réussie
+2026-09-10 22:09:35 | INFO     | execute_actions() | [2/3] Exécution: record_amount
+2026-09-10 22:09:35 | INFO     | _record_amount() | 💰 1 montant(s) enregistré(s)
+2026-09-10 22:09:35 | INFO     | execute_actions() | ✅ [2/3] record_amount réussie
+2026-09-10 22:09:35 | INFO     | execute_actions() | [3/3] Exécution: classify_document
+2026-09-10 22:09:35 | INFO     | _classify() | 📁 Document classé dans exports/classement/devis/
+2026-09-10 22:09:35 | INFO     | execute_actions() | ✅ [3/3] classify_document réussie
+2026-09-10 22:09:35 | INFO     | execute_actions() | 📊 3/3 action(s) réussie(s)
+2026-09-10 22:18:23 | INFO     | __init__() | 📧 Resend configuré (from: onboarding@resend.dev)
+2026-09-10 22:18:23 | INFO     | __init__() | 📁 Dossiers créés/vérifiés
+2026-09-10 22:18:23 | INFO     | __init__() | 🚀 PostAnalysisAgent initialisé
+2026-09-10 22:22:09 | INFO     | __init__() | 📧 Resend configuré (from: onboarding@resend.dev)
+2026-09-10 22:22:09 | INFO     | __init__() | 📁 Dossiers créés/vérifiés
+2026-09-10 22:22:09 | INFO     | __init__() | 🚀 PostAnalysisAgent initialisé
+2026-09-10 22:22:43 | DEBUG    | detect_actions() | 📧 Aucun email détecté
+2026-09-10 22:22:43 | INFO     | detect_actions() | 📅 1 date(s) détectée(s): ['25/09/2026']
+2026-09-10 22:22:43 | INFO     | detect_actions() | 💰 1 montant(s) détecté(s): ['2500 €']
+2026-09-10 22:22:43 | INFO     | detect_actions() | 📁 Type de document: devis
+2026-09-10 22:22:43 | INFO     | detect_actions() | ✅ 3 action(s) détectée(s)
+2026-09-10 22:22:43 | INFO     | execute_actions() | 🚀 Exécution de 3 action(s)...
+2026-09-10 22:22:43 | INFO     | execute_actions() | [1/3] Exécution: create_reminder
+2026-09-10 22:22:43 | INFO     | _create_reminder() | 📅 1 rappel(s) créé(s)
+2026-09-10 22:22:43 | INFO     | execute_actions() | ✅ [1/3] create_reminder réussie
+2026-09-10 22:22:43 | INFO     | execute_actions() | [2/3] Exécution: record_amount
+2026-09-10 22:22:43 | INFO     | _record_amount() | 💰 1 montant(s) enregistré(s)
+2026-09-10 22:22:43 | INFO     | execute_actions() | ✅ [2/3] record_amount réussie
+2026-09-10 22:22:43 | INFO     | execute_actions() | [3/3] Exécution: classify_document
+2026-09-10 22:22:43 | INFO     | _classify() | 📁 Document classé dans exports/classement/devis/
+2026-09-10 22:22:43 | INFO     | execute_actions() | ✅ [3/3] classify_document réussie
+2026-09-10 22:22:43 | INFO     | execute_actions() | 📊 3/3 action(s) réussie(s)

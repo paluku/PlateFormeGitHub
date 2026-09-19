@@ -1,0 +1,1192 @@
+```html
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Computer Agent</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 38px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #cbd5e1;
+            font-size: 17px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 18px;
+            padding: 25px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 23px;
+        }
+
+        .card h3 {
+            margin: 20px 0 12px;
+            font-size: 17px;
+            color: #dbeafe;
+        }
+
+        /* APPLICATIONS */
+
+        #appGrid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .app-button {
+            border: none;
+            border-radius: 12px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .app-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        /* FORMULAIRES */
+
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .row > * {
+            flex: 1;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.25);
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #b6c2d1;
+        }
+
+        /* BOUTONS */
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            cursor: pointer;
+            color: white;
+            background: #2563eb;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .btn-green {
+            background: #16a34a;
+        }
+
+        .btn-orange {
+            background: #ea580c;
+        }
+
+        .btn-red {
+            background: #dc2626;
+        }
+
+        .btn-purple {
+            background: #7c3aed;
+        }
+
+        .btn-gray {
+            background: #475569;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        /* STATUS */
+
+        .status {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: #cbd5e1;
+            min-height: 40px;
+        }
+
+        .success {
+            color: #86efac;
+        }
+
+        .error {
+            color: #fca5a5;
+        }
+
+        .info {
+            color: #93c5fd;
+        }
+
+        /* SCREENSHOT */
+
+        #screenshotPreview {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        #screenshotPreview img {
+            max-width: 100%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* SCREEN INFO */
+
+        #screenInfo {
+            line-height: 1.8;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        /* JOURNAL */
+
+        #actionLog {
+            height: 300px;
+            overflow-y: auto;
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+        }
+
+        .log-line {
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 6px;
+        }
+
+        .log-time {
+            color: #94a3b8;
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .row {
+                flex-direction: column;
+            }
+
+            #appGrid,
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>🖥️ Computer Agent</h1>
+        <p>Contrôlez votre ordinateur avec des actions simples</p>
+    </header>
+
+    <div class="grid">
+
+        <!-- ===================================================== -->
+        <!-- COLONNE GAUCHE -->
+        <!-- ===================================================== -->
+
+        <div>
+
+            <!-- APPLICATIONS -->
+
+            <div class="card">
+                <h2>🚀 Ouvrir une application</h2>
+
+                <p style="color:#cbd5e1; margin-bottom:15px;">
+                    Cliquez sur une application pour la lancer.
+                </p>
+
+                <div id="appGrid">
+                    <button class="app-button">
+                        Chargement...
+                    </button>
+                </div>
+
+                <div id="appStatus" class="status">
+                    🔄 Chargement des applications...
+                </div>
+            </div>
+
+
+            <!-- SOURIS -->
+
+            <div class="card">
+
+                <h2>🖱️ Souris</h2>
+
+                <h3>📍 Déplacer la souris</h3>
+
+                <div class="row">
+                    <input
+                        type="number"
+                        id="moveX"
+                        placeholder="X"
+                    >
+
+                    <input
+                        type="number"
+                        id="moveY"
+                        placeholder="Y"
+                    >
+
+                    <button onclick="moveMouse()">
+                        📍 Déplacer
+                    </button>
+                </div>
+
+
+                <h3>👆 Cliquer</h3>
+
+                <div class="row">
+
+                    <input
+                        type="number"
+                        id="clickX"
+                        placeholder="X"
+                    >
+
+                    <input
+                        type="number"
+                        id="clickY"
+                        placeholder="Y"
+                    >
+
+                </div>
+
+                <div class="button-grid">
+
+                    <button onclick="clickMouse('left', 1)">
+                        👆 Clic gauche
+                    </button>
+
+                    <button onclick="clickMouse('right', 1)">
+                        👉 Clic droit
+                    </button>
+
+                    <button onclick="clickMouse('left', 2)">
+                        👆👆 Double clic
+                    </button>
+
+                    <button
+                        class="btn-gray"
+                        onclick="getMousePosition()">
+                        📍 Position actuelle
+                    </button>
+
+                </div>
+
+                <div id="mouseStatus" class="status">
+                    🖱️ Prêt
+                </div>
+
+            </div>
+
+
+            <!-- CLAVIER -->
+
+            <div class="card">
+
+                <h2>⌨️ Clavier</h2>
+
+                <h3>✍️ Écrire du texte</h3>
+
+                <textarea
+                    id="textToWrite"
+                    placeholder="Écrivez le texte que le Computer Agent doit taper..."
+                ></textarea>
+
+                <button
+                    class="btn-green"
+                    style="margin-top:10px; width:100%;"
+                    onclick="writeText()">
+                    ✍️ Écrire le texte
+                </button>
+
+
+                <h3>⌨️ Appuyer sur une touche</h3>
+
+                <div class="button-grid">
+
+                    <button onclick="pressKey('enter')">
+                        ↵ Entrée
+                    </button>
+
+                    <button onclick="pressKey('tab')">
+                        ⇥ Tab
+                    </button>
+
+                    <button onclick="pressKey('esc')">
+                        Esc
+                    </button>
+
+                    <button onclick="pressKey('space')">
+                        ␣ Espace
+                    </button>
+
+                    <button onclick="pressKey('backspace')">
+                        ⌫ Retour
+                    </button>
+
+                </div>
+
+                <div id="keyboardStatus" class="status">
+                    ⌨️ Prêt
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- COLONNE DROITE -->
+        <!-- ===================================================== -->
+
+        <div>
+
+            <!-- SCREENSHOT -->
+
+            <div class="card">
+
+                <h2>📸 Capture d'écran</h2>
+
+                <button
+                    class="btn-purple"
+                    style="width:100%;"
+                    onclick="takeScreenshot()">
+
+                    📸 Faire une capture
+
+                </button>
+
+                <div id="screenshotPreview">
+                    <p style="color:#94a3b8; margin-top:15px;">
+                        📸 Aucune capture
+                    </p>
+                </div>
+
+                <div id="screenshotStatus" class="status">
+                    Prêt
+                </div>
+
+            </div>
+
+
+            <!-- INFORMATIONS ECRAN -->
+
+            <div class="card">
+
+                <h2>📺 Informations écran</h2>
+
+                <div id="screenInfo">
+                    🔄 Chargement...
+                </div>
+
+            </div>
+
+
+            <!-- JOURNAL -->
+
+            <div class="card">
+
+                <h2>📋 Journal des actions</h2>
+
+                <div id="actionLog"></div>
+
+                <button
+                    class="btn-red"
+                    style="width:100%; margin-top:12px;"
+                    onclick="clearLog()">
+
+                    🗑️ Effacer le journal
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    /* =========================================================
+       OUTILS
+    ========================================================= */
+
+    function log(message, type = "info") {
+
+        const container = document.getElementById("actionLog");
+
+        const time = new Date().toLocaleTimeString();
+
+        const line = document.createElement("div");
+
+        line.className = "log-line";
+
+        line.innerHTML = `
+            <span class="log-time">[${time}]</span>
+            <span class="${type}">${message}</span>
+        `;
+
+        container.appendChild(line);
+
+        container.scrollTop = container.scrollHeight;
+    }
+
+
+    function setStatus(id, message, type = "info") {
+
+        const element = document.getElementById(id);
+
+        element.className = "status " + type;
+
+        element.textContent = message;
+    }
+
+
+    /* =========================================================
+       INFORMATIONS ECRAN
+       GET /api/computer/screen
+       ========================================================= */
+
+    async function loadScreenInfo() {
+
+        try {
+
+            const response =
+                await fetch("/api/computer/screen");
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || "Erreur écran");
+            }
+
+            const screen = data.screen;
+
+            document.getElementById("screenInfo").innerHTML = `
+                <div>🖥️ Largeur : <strong>${screen.width}</strong> px</div>
+                <div>📏 Hauteur : <strong>${screen.height}</strong> px</div>
+                <div>💻 Système : <strong>${screen.os || "Windows"}</strong></div>
+            `;
+
+            log("📺 Informations écran récupérées", "success");
+
+        } catch (error) {
+
+            document.getElementById("screenInfo").innerHTML =
+                `❌ ${error.message}`;
+
+            log(
+                "❌ Impossible de récupérer les informations écran",
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       APPLICATIONS
+       GET /api/computer/apps
+       ========================================================= */
+
+    async function loadAllowedApps() {
+
+        try {
+
+            const response =
+                await fetch("/api/computer/apps");
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    data.error || "Impossible de récupérer les applications"
+                );
+            }
+
+            const apps = data.apps;
+
+            const appGrid =
+                document.getElementById("appGrid");
+
+            appGrid.innerHTML = "";
+
+            apps.forEach(app => {
+
+                const button =
+                    document.createElement("button");
+
+                button.className = "app-button";
+
+                let icon = "🖥️";
+
+                if (
+                    app.toLowerCase().includes("notepad") ||
+                    app.toLowerCase().includes("bloc")
+                ) {
+                    icon = "📝";
+                }
+
+                else if (
+                    app.toLowerCase().includes("calculator") ||
+                    app.toLowerCase().includes("calculatrice")
+                ) {
+                    icon = "🧮";
+                }
+
+                else if (
+                    app.toLowerCase().includes("paint")
+                ) {
+                    icon = "🎨";
+                }
+
+                else if (
+                    app.toLowerCase().includes("wordpad")
+                ) {
+                    icon = "📄";
+                }
+
+                button.innerHTML =
+                    `${icon} ${app}`;
+
+                button.onclick = function() {
+                    openApp(app);
+                };
+
+                appGrid.appendChild(button);
+            });
+
+            setStatus(
+                "appStatus",
+                `✅ ${apps.length} application(s) disponible(s)`,
+                "success"
+            );
+
+            log(
+                `🚀 ${apps.length} applications chargées`,
+                "success"
+            );
+
+        } catch (error) {
+
+            setStatus(
+                "appStatus",
+                `❌ ${error.message}`,
+                "error"
+            );
+
+            log(
+                "❌ Erreur lors du chargement des applications",
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       OUVRIR UNE APPLICATION
+       POST /api/computer/open-app
+       ========================================================= */
+
+    async function openApp(appName) {
+
+        setStatus(
+            "appStatus",
+            `⏳ Ouverture de ${appName}...`,
+            "info"
+        );
+
+        log(
+            `🚀 Ouverture de ${appName}...`,
+            "info"
+        );
+
+        try {
+
+            const response =
+                await fetch("/api/computer/open-app", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        app: appName
+                    })
+                });
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    data.error || "Impossible d'ouvrir l'application"
+                );
+            }
+
+            setStatus(
+                "appStatus",
+                `✅ ${appName} ouvert`,
+                "success"
+            );
+
+            log(
+                `✅ ${appName} ouvert avec succès`,
+                "success"
+            );
+
+        } catch (error) {
+
+            setStatus(
+                "appStatus",
+                `❌ ${error.message}`,
+                "error"
+            );
+
+            log(
+                `❌ Erreur ouverture ${appName}`,
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       DEPLACER LA SOURIS
+       POST /api/computer/move-mouse
+       ========================================================= */
+
+    async function moveMouse() {
+
+        const x =
+            document.getElementById("moveX").value;
+
+        const y =
+            document.getElementById("moveY").value;
+
+        if (x === "" || y === "") {
+
+            setStatus(
+                "mouseStatus",
+                "⚠️ Entrez X et Y",
+                "error"
+            );
+
+            return;
+        }
+
+        try {
+
+            const response =
+                await fetch("/api/computer/move-mouse", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        x: parseInt(x),
+                        y: parseInt(y)
+                    })
+                });
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    data.error || "Erreur déplacement"
+                );
+            }
+
+            setStatus(
+                "mouseStatus",
+                `✅ Souris déplacée vers (${x}, ${y})`,
+                "success"
+            );
+
+            log(
+                `📍 Souris → (${x}, ${y})`,
+                "success"
+            );
+
+        } catch (error) {
+
+            setStatus(
+                "mouseStatus",
+                `❌ ${error.message}`,
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       CLIQUER
+       POST /api/computer/click
+
+       ATTENTION :
+       Ton ComputerAgent actuel accepte seulement :
+       click(x, y)
+
+       Donc ici on envoie uniquement X et Y.
+       ========================================================= */
+
+    async function clickMouse(button = "left", clicks = 1) {
+
+        const x =
+            document.getElementById("clickX").value;
+
+        const y =
+            document.getElementById("clickY").value;
+
+        if (x === "" || y === "") {
+
+            setStatus(
+                "mouseStatus",
+                "⚠️ Entrez X et Y",
+                "error"
+            );
+
+            return;
+        }
+
+        try {
+
+            const response =
+                await fetch("/api/computer/click", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        x: parseInt(x),
+                        y: parseInt(y)
+                    })
+                });
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    data.error || "Erreur clic"
+                );
+            }
+
+            let action = "clic gauche";
+
+            if (button === "right") {
+                action = "clic droit";
+            }
+
+            if (clicks === 2) {
+                action = "double clic";
+            }
+
+            setStatus(
+                "mouseStatus",
+                `✅ ${action} en (${x}, ${y})`,
+                "success"
+            );
+
+            log(
+                `🖱️ ${action} → (${x}, ${y})`,
+                "success"
+            );
+
+        } catch (error) {
+
+            setStatus(
+                "mouseStatus",
+                `❌ ${error.message}`,
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       POSITION SOURIS
+       GET /api/computer/mouse-position
+       ========================================================= */
+
+    async function getMousePosition() {
+
+        try {
+
+            const response =
+                await fetch("/api/computer/mouse-position");
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    data.error || "Erreur position souris"
+                );
+            }
+
+            const position = data.position;
+
+            setStatus(
+                "mouseStatus",
+                `📍 Position : (${position.x}, ${position.y})`,
+                "success"
+            );
+
+            log(
+                `📍 Position souris → (${position.x}, ${position.y})`,
+                "info"
+            );
+
+        } catch (error) {
+
+            setStatus(
+                "mouseStatus",
+                `❌ ${error.message}`,
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       ECRIRE DU TEXTE
+       POST /api/computer/write-text
+       ========================================================= */
+
+    async function writeText() {
+
+        const text =
+            document.getElementById("textToWrite").value;
+
+        if (!text.trim()) {
+
+            setStatus(
+                "keyboardStatus",
+                "⚠️ Entrez du texte",
+                "error"
+            );
+
+            return;
+        }
+
+        try {
+
+            const response =
+                await fetch("/api/computer/write-text", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        text: text
+                    })
+                });
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    data.error || "Erreur écriture"
+                );
+            }
+
+            setStatus(
+                "keyboardStatus",
+                "✅ Texte écrit",
+                "success"
+            );
+
+            log(
+                `✍️ Texte écrit (${text.length} caractères)`,
+                "success"
+            );
+
+        } catch (error) {
+
+            setStatus(
+                "keyboardStatus",
+                `❌ ${error.message}`,
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       APPUYER SUR UNE TOUCHE
+       POST /api/computer/press-key
+       ========================================================= */
+
+    async function pressKey(key) {
+
+        try {
+
+            const response =
+                await fetch("/api/computer/press-key", {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        key: key
+                    })
+                });
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    data.error || "Erreur touche"
+                );
+            }
+
+            setStatus(
+                "keyboardStatus",
+                `✅ Touche ${key}`,
+                "success"
+            );
+
+            log(
+                `⌨️ Touche → ${key}`,
+                "success"
+            );
+
+        } catch (error) {
+
+            setStatus(
+                "keyboardStatus",
+                `❌ ${error.message}`,
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       SCREENSHOT
+       POST /api/computer/screenshot
+       ========================================================= */
+
+    async function takeScreenshot() {
+
+        setStatus(
+            "screenshotStatus",
+            "📸 Capture en cours...",
+            "info"
+        );
+
+        try {
+
+            const response =
+                await fetch("/api/computer/screenshot", {
+
+                    method: "POST"
+                });
+
+            const data =
+                await response.json();
+
+            if (!data.success) {
+                throw new Error(
+                    data.error || "Erreur capture"
+                );
+            }
+
+            const preview =
+                document.getElementById("screenshotPreview");
+
+            preview.innerHTML = `
+                <img
+                    src="${data.url}?t=${Date.now()}"
+                    alt="Capture d'écran"
+                >
+            `;
+
+            setStatus(
+                "screenshotStatus",
+                "✅ Capture effectuée",
+                "success"
+            );
+
+            log(
+                `📸 Capture → ${data.filename}`,
+                "success"
+            );
+
+        } catch (error) {
+
+            setStatus(
+                "screenshotStatus",
+                `❌ ${error.message}`,
+                "error"
+            );
+
+            log(
+                "❌ Erreur capture écran",
+                "error"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       EFFACER LE JOURNAL
+       ========================================================= */
+
+    function clearLog() {
+
+        document.getElementById("actionLog").innerHTML = "";
+
+        log(
+            "📋 Journal vidé",
+            "info"
+        );
+    }
+
+
+    /* =========================================================
+       INITIALISATION
+       ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+
+            log(
+                "🖥️ Computer Agent démarré",
+                "success"
+            );
+
+            loadScreenInfo();
+
+            loadAllowedApps();
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
+```

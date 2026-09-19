@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📄 Analyse multi-fichiers avec IA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        .header h1 { font-size: 2.2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.1rem; opacity: 0.9; }
+        
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .card h3 { color: #333; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 1rem;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .btn-primary { background: #667eea; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-success { background: #28a745; }
+        .btn-success:hover { background: #218838; }
+        .btn-warning { background: #ff922b; }
+        .btn-warning:hover { background: #e67e22; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-sm { font-size: 0.8rem; padding: 6px 14px; }
+        
+        .file-list-preview {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #e9ecef;
+        }
+        .file-preview-item {
+            padding: 6px 10px;
+            background: white;
+            border-radius: 6px;
+            margin: 4px 0;
+            border-left: 3px solid #667eea;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .file-preview-item .size { color: #888; font-size: 0.8rem; }
+        
+        .question-box {
+            background: #fff3cd;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+        }
+        .question-box strong { color: #856404; }
+        
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+        }
+        
+        .result-item {
+            background: #f8f9fa;
+            padding: 15px 18px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .file-result-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.loading { background: #cce5ff; color: #004085; border: 1px solid #b8daff; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        .flex-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        
+        input[type="file"] {
+            padding: 12px;
+            border: 2px dashed #28a745;
+            border-radius: 8px;
+            background: #f0fff4;
+            flex: 1;
+            cursor: pointer;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.5rem; }
+            .flex-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 Analyse multi-fichiers avec IA</h1>
+            <p>Uploadez plusieurs fichiers, posez votre question et obtenez des réponses</p>
+        </div>
+
+        <!-- SECTION 1 : UPLOAD -->
+        <div class="card">
+            <h3>📤 Sélectionner un ou plusieurs fichiers</h3>
+            
+            <div class="flex-row">
+                <input type="file" id="fileInput" multiple accept=".pdf,.txt,.docx,.csv,.json,.md,.py,.js,.html,.xml,.xlsx">
+                <button class="btn btn-danger btn-sm" onclick="clearFileSelection()">🗑️ Vider la sélection</button>
+            </div>
+            
+            <div id="selectedFiles" class="file-list-preview" style="display:none;">
+                <strong style="font-size:0.9rem;">📁 Fichiers sélectionnés :</strong>
+                <div id="selectedFilesList"></div>
+            </div>
+            
+            <div id="uploadStatus" class="status info">📭 Aucun fichier sélectionné</div>
+        </div>
+
+        <!-- SECTION 2 : QUESTION -->
+        <div class="card">
+            <h3>❓ Votre question</h3>
+            
+            <div class="question-box">
+                <strong>📋 Question (modifiable) :</strong><br>
+                <textarea id="questionInput" rows="5">Quel est le numéro du contrat, le nom du client, la date de signature, la durée du contrat et le délai prévu pour la prise en compte d'un incident critique ? Indique pour chaque réponse où tu as trouvé l'information dans le document.</textarea>
+            </div>
+            
+            <div class="flex-row" style="margin-top: 10px;">
+                <button class="btn btn-primary" onclick="uploadAndAnalyzeAll()" id="analyzeBtn" style="flex:2;">
+                    🚀 Uploader et analyser tous les fichiers
+                </button>
+                <button class="btn btn-warning" onclick="clearResults()">🗑️ Effacer les résultats</button>
+            </div>
+            
+            <div class="progress-bar" id="progressBar" style="display:none;">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div id="questionStatus" class="status info" style="margin-top:10px;">✏️ Modifiez la question et cliquez sur "Analyser"</div>
+        </div>
+
+        <!-- SECTION 3 : RÉSULTATS -->
+        <div class="card">
+            <h3>📋 Résultats de l'analyse</h3>
+            
+            <div id="resultsContainer">
+                <p style="color:#888; text-align:center; padding:20px;">
+                    📭 Aucun résultat. Sélectionnez des fichiers et lancez l'analyse.
+                </p>
+            </div>
+        </div>
+
+        <!-- SECTION 4 : JOURNAL -->
+        <div class="card" style="border-left: 4px solid #dc3545;">
+            <h3 style="color:#dc3545;">⚠️ Journal</h3>
+            <div id="logContainer" style="background:#1e1e1e; color:#00ff00; padding:15px; border-radius:8px; font-family:monospace; font-size:0.8rem; max-height:200px; overflow-y:auto; white-space:pre-wrap; word-wrap:break-word;">
+📋 Journal prêt...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log("🚀 Page multi-fichiers chargée");
+        
+        let selectedFiles = [];
+        let isAnalyzing = false;
+
+        // =============================================
+        // LOGGER
+        // =============================================
+        function log(message, type = 'INFO') {
+            const container = document.getElementById('logContainer');
+            const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+            const colors = {
+                'ERROR': '#ff4444', 'WARN': '#ffaa00',
+                'SUCCESS': '#00ff44', 'INFO': '#44aaff'
+            };
+            const color = colors[type] || '#00ff00';
+            container.innerHTML += `<span style="color:#888;">[${timestamp}]</span> <span style="color:${color};">[${type}]</span> ${message}\n`;
+            container.scrollTop = container.scrollHeight;
+            console.log(`[${timestamp}] [${type}] ${message}`);
+        }
+
+        function setStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.className = 'status ' + type;
+            el.textContent = message;
+        }
+
+        function updateProgress(percent) {
+            const bar = document.getElementById('progressBar');
+            const fill = document.getElementById('progressFill');
+            if (!bar || !fill) return;
+            if (percent > 0) {
+                bar.style.display = 'block';
+                fill.style.width = percent + '%';
+            } else {
+                bar.style.display = 'none';
+                fill.style.width = '0%';
+            }
+        }
+
+        // =============================================
+        // SÉLECTION DES FICHIERS
+        // =============================================
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            selectedFiles = Array.from(e.target.files);
+            displaySelectedFiles();
+        });
+
+        function displaySelectedFiles() {
+            const container = document.getElementById('selectedFiles');
+            const list = document.getElementById('selectedFilesList');
+            
+            if (selectedFiles.length === 0) {
+                container.style.display = 'none';
+                setStatus('uploadStatus', '📭 Aucun fichier sélectionné', 'info');
+                return;
+            }
+            
+            container.style.display = 'block';
+            list.innerHTML = selectedFiles.map(f => `
+                <div class="file-preview-item">
+                    <span>📄 ${f.name}</span>
+                    <span class="size">${(f.size/1024).toFixed(1)} KB</span>
+                </div>
+            `).join('');
+            
+            setStatus('uploadStatus', `✅ ${selectedFiles.length} fichier(s) sélectionné(s)`, 'success');
+            log(`📁 ${selectedFiles.length} fichier(s) sélectionné(s)`, 'INFO');
+        }
+
+        function clearFileSelection() {
+            selectedFiles = [];
+            document.getElementById('fileInput').value = '';
+            document.getElementById('selectedFiles').style.display = 'none';
+            setStatus('uploadStatus', '📭 Aucun fichier sélectionné', 'info');
+            log('🗑️ Sélection vidée', 'INFO');
+        }
+
+        // =============================================
+        // UPLOAD + ANALYSE
+        // =============================================
+        async function uploadAndAnalyzeAll() {
+            if (isAnalyzing) return;
+
+            const question = document.getElementById('questionInput').value.trim();
+
+            if (!question) {
+                alert("Pose d'abord une question.");
+                return;
+            }
+
+            if (!selectedFiles || selectedFiles.length === 0) {
+                alert("Sélectionne au moins un fichier.");
+                return;
+            }
+
+            isAnalyzing = true;
+            const btn = document.getElementById('analyzeBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Analyse en cours...';
+
+            updateProgress(10);
+            setStatus('questionStatus', '⏳ Upload des fichiers...', 'loading');
+            log(`📚 ${selectedFiles.length} fichier(s) sélectionné(s)`, 'INFO');
+
+            try {
+                // 1. UPLOAD DES FICHIERS
+                for (const file of selectedFiles) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    log(`📤 Upload: ${file.name}`, 'INFO');
+
+                    const uploadResponse = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const uploadResult = await uploadResponse.json();
+
+                    if (!uploadResponse.ok) {
+                        throw new Error(
+                            `Erreur upload ${file.name}: ${
+                                uploadResult.error || 'Erreur inconnue'
+                            }`
+                        );
+                    }
+
+                    log(`✅ Upload: ${file.name}`, 'SUCCESS');
+                }
+
+                updateProgress(40);
+                setStatus('questionStatus', '🤖 Analyse avec Ollama...', 'loading');
+
+                // 2. LISTE DES FICHIERS
+                const filenames = selectedFiles.map(file => file.name);
+
+                log(`🔎 Analyse de ${filenames.length} fichier(s)...`, 'INFO');
+
+                // 3. ENVOYER LA QUESTION
+                const response = await fetch('/api/chat-with-file', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filenames: filenames,
+                        question: question,
+                        agent: 'assistant'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Erreur pendant l\'analyse');
+                }
+
+                updateProgress(100);
+
+                log(`✅ Réponse reçue pour ${result.files_analyzed || filenames.length} fichier(s)`, 'SUCCESS');
+
+                // 4. AFFICHER LE RÉSULTAT
+                displayMultiFileResult(result);
+
+                setStatus('questionStatus', `✅ Analyse terminée (${result.files_analyzed || filenames.length} fichier(s))`, 'success');
+
+            } catch (error) {
+                console.error("❌ Erreur analyse multi-fichiers :", error);
+                log(`❌ Erreur: ${error.message}`, 'ERROR');
+                setStatus('questionStatus', `❌ ${error.message}`, 'error');
+                alert("Erreur pendant l'analyse : " + error.message);
+            }
+
+            isAnalyzing = false;
+            btn.disabled = false;
+            btn.textContent = '🚀 Uploader et analyser tous les fichiers';
+            setTimeout(() => updateProgress(0), 2000);
+        }
+
+        // =============================================
+        // AFFICHER LE RÉSULTAT MULTI-FICHIERS
+        // =============================================
+        function displayMultiFileResult(result) {
+            const container = document.getElementById('resultsContainer');
+            
+            let html = `
+                <div class="file-result-header">
+                    📚 Analyse de ${result.files_analyzed || 0} fichier(s)
+                    <span style="margin-left:auto; font-size:0.85rem; opacity:0.9;">✅ Terminé</span>
+                </div>
+            `;
+            
+            if (result.filenames && result.filenames.length > 0) {
+                html += `
+                    <div style="background:#f0f8ff; padding:12px 16px; border-radius:8px; margin-bottom:15px; border-left:3px solid #667eea;">
+                        <strong style="font-size:0.9rem;">📁 Fichiers analysés :</strong>
+                        <div style="margin-top:8px;">
+                            ${result.filenames.map(f => `
+                                <div style="font-size:0.9rem; padding:4px 0;">📄 ${f}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (result.question) {
+                html += `
+                    <div style="background:#fff3cd; padding:12px 16px; border-radius:8px; margin-bottom:15px; border-left:3px solid #ffc107;">
+                        <strong style="font-size:0.9rem;">❓ Question :</strong>
+                        <div style="margin-top:5px; font-size:0.9rem;">${result.question}</div>
+                    </div>
+                `;
+            }
+            
+            if (result.response) {
+                const safeResponse = result.response
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                
+                html += `
+                    <div class="file-result-header" style="background:linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        🤖 Réponse de l'IA
+                    </div>
+                    <div class="result-item" style="border-left-color:#28a745;">
+                        <div style="white-space:pre-wrap; line-height:1.7; font-size:0.95rem; color:#333; padding:5px 0;">
+                            ${safeResponse}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            log('✅ Résultats affichés', 'SUCCESS');
+        }
+
+        // =============================================
+        // EFFACER LES RÉSULTATS
+        // =============================================
+        function clearResults() {
+            document.getElementById('resultsContainer').innerHTML = `
+                <p style="color:#888; text-align:center; padding:20px;">
+                    📭 Résultats effacés. Sélectionnez des fichiers et lancez l'analyse.
+                </p>
+            `;
+            setStatus('questionStatus', '📭 Résultats effacés', 'info');
+            log('🗑️ Résultats effacés', 'INFO');
+        }
+
+        // =============================================
+        // INITIALISATION
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            log('📄 Page multi-fichiers chargée', 'INFO');
+            log('💡 Sélectionnez un ou plusieurs fichiers et modifiez la question', 'INFO');
+            
+            // Ctrl+Enter pour lancer l'analyse
+            const questionInput = document.getElementById('questionInput');
+            if (questionInput) {
+                questionInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        uploadAndAnalyzeAll();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

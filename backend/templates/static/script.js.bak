@@ -1,0 +1,168 @@
+console.log("🚀 script.js chargé !");
+
+// =============================================
+// DESCRIPTIONS DES AGENTS
+// =============================================
+const agentDescriptions = {
+    'base': { name: 'Base Agent', desc: 'Agent de base - Réponses simples' },
+    'echo': { name: 'Echo Agent', desc: 'Écho et analyse des messages' },
+    'assistant': { name: 'Assistant Agent', desc: 'Assistant conversationnel avec IA (Ollama)' },
+    'specialist': { name: 'Specialist Agent', desc: 'Agent spécialisé avec IA (Ollama)' },
+    'collaborative': { name: 'Collaborative Agent', desc: 'Coordination multi-agents avec IA (Ollama)' }
+};
+
+let currentAgent = 'base';
+let currentConversation = 1;
+
+// =============================================
+// MISE À JOUR DE L'AGENT
+// =============================================
+function updateAgentInfo(agentKey) {
+    const info = agentDescriptions[agentKey];
+    document.getElementById('agentName').textContent = `🤖 ${info.name}`;
+    document.getElementById('agentDescription').textContent = info.desc;
+    console.log("📝 Agent mis à jour:", agentKey);
+}
+
+// =============================================
+// NAVIGATION
+// =============================================
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        this.classList.add('active');
+        currentAgent = this.dataset.agent;
+        updateAgentInfo(currentAgent);
+        loadConversationHistory(currentConversation);
+    });
+});
+
+// =============================================
+// AJOUTER UN MESSAGE
+// =============================================
+function addMessage(role, content, agentName = null) {
+    const messages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${role}`;
+    
+    if (role === 'user') {
+        messageDiv.innerHTML = `<div class="message-content">${content}</div>`;
+    } else {
+        const name = agentName || currentAgent;
+        const info = agentDescriptions[name] || agentDescriptions['base'];
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <div class="message-agent-name">🤖 ${info.name}</div>
+                ${content}
+            </div>
+        `;
+    }
+    messages.appendChild(messageDiv);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+// =============================================
+    // HISTORIQUE
+// =============================================
+function loadConversationHistory(convId) {
+    console.log("📜 Chargement de l'historique:", convId);
+    fetch(`/api/chat/history/${convId}`)
+        .then(response => response.json())
+        .then(messages => {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+            
+            if (messages.length === 0) {
+                addMessage('agent', 'Nouvelle conversation ! Envoyez-moi un message.', currentAgent);
+            } else {
+                messages.forEach(msg => {
+                    const role = msg.role === 'user' ? 'user' : 'agent';
+                    const content = msg.content;
+                    const name = msg.role === 'user' ? null : currentAgent;
+                    addMessage(role, content, name);
+                });
+            }
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        })
+        .catch(error => console.error('Erreur:', error));
+}
+
+// =============================================
+// ENVOI DE MESSAGE
+// =============================================
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (!message) return;
+    
+    console.log("💬 Message:", message);
+    
+    addMessage('user', message);
+    input.value = '';
+    
+    // Message "en cours..."
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'message agent';
+    loadingMsg.id = 'loadingMsg';
+    loadingMsg.innerHTML = `
+        <div class="message-content">
+            <div class="message-agent-name">🤖 ${agentDescriptions[currentAgent].name}</div>
+            <em>⏳ Réflexion en cours...</em>
+        </div>
+    `;
+    document.getElementById('chatMessages').appendChild(loadingMsg);
+    
+    // =============================================
+    // APPEL À L'API FLASK
+    // =============================================
+    fetch('/api/chat/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message: message,
+            agent: currentAgent,
+            conversation_id: currentConversation
+        })
+    })
+    .then(response => {
+        console.log("📥 Status:", response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log("📦 Données reçues:", data);
+        
+        // Supprimer le message de chargement
+        const loadingEl = document.getElementById('loadingMsg');
+        if (loadingEl) loadingEl.remove();
+        
+        // Afficher la réponse
+        addMessage('agent', data.response, currentAgent);
+    })
+    .catch(error => {
+        console.error('❌ Erreur:', error);
+        const loadingEl = document.getElementById('loadingMsg');
+        if (loadingEl) loadingEl.remove();
+        addMessage('agent', `⚠️ Erreur: ${error.message}`, currentAgent);
+    });
+}
+
+// =============================================
+// ÉCOUTEURS
+// =============================================
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('messageInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+// =============================================
+// INITIALISATION
+// =============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("🌐 DOM chargé !");
+    updateAgentInfo('base');
+    loadConversationHistory(1);
+    console.log("✅ Initialisation terminée !");
+});

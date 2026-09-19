@@ -1,0 +1,30 @@
+# agents/agent_manager.py - VERSION 1: GESTIONNAIRE
+"""
+AGENT MANAGER - Gère tous les agents
+Role: Centraliser les agents
+Ordre de construction: 7ème
+"""
+
+from .base_agent import BaseAgent
+from .echo_agent import EchoAgent
+
+class AgentManager:
+    def __init__(self, model="llama3.2"):
+        self.model = model
+        self.agents = {}
+        self._initialize_agents()
+        
+    def _initialize_agents(self):
+        """Initialise les agents"""
+        # Niveau 1
+        self.agents["base"] = BaseAgent("Agent Base", self.model)
+        # Niveau 2
+        self.agents["echo"] = EchoAgent("Agent Echo", self.model)
+        
+    def get_agent(self, agent_name):
+        """Récupère un agent"""
+        return self.agents.get(agent_name, self.agents["base"])
+    
+    def list_agents(self):
+        """Liste les agents"""
+        return {name: agent.get_info() for name, agent in self.agents.items()}

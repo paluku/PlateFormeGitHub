@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📁 FileReader - Gestion des fichiers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            color: #333;
+        }
+
+        .header h1 span {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header .count {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* ===== UPLOAD ===== */
+        .upload-area {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .upload-area form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-area input[type="file"] {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .upload-area button {
+            padding: 10px 30px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .upload-area button:hover {
+            background: #218838;
+            transform: scale(1.02);
+        }
+
+        #uploadStatus {
+            margin-top: 10px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        /* ===== ZONE DE LECTURE ===== */
+        .read-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .read-area .read-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .read-area .read-header h3 {
+            color: #333;
+        }
+
+        .read-area .read-header button {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .read-area .read-header button:hover {
+            background: #5a6fd6;
+        }
+
+        #fileContent {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            display: none;
+        }
+
+        #fileContent.show {
+            display: block;
+        }
+
+        /* ===== LISTE ===== */
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .file-item:hover {
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .file-item .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .file-item .file-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .file-item .file-name a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .file-item .file-name a:hover {
+            text-decoration: underline;
+        }
+
+        .file-item .file-size {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .file-item .file-date {
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        .file-item .file-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .file-item .file-actions button {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .file-item .file-actions .btn-read {
+            background: #667eea;
+            color: white;
+        }
+
+        .file-item .file-actions .btn-read:hover {
+            background: #5a6fd6;
+        }
+
+        .file-item .file-actions .btn-download {
+            background: #ff922b;
+            color: white;
+        }
+
+        .file-item .file-actions .btn-download:hover {
+            background: #e07c1a;
+        }
+
+        .file-item .file-actions .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .file-item .file-actions .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+        }
+
+        .empty .icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .empty h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.5s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: #28a745;
+        }
+        .toast.error {
+            background: #dc3545;
+        }
+        .toast.info {
+            background: #17a2b8;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .file-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .file-item .file-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .upload-area form {
+                flex-direction: column;
+            }
+
+            .upload-area input[type="file"] {
+                width: 100%;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .read-area .read-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- ===== HEADER ===== -->
+        <div class="header">
+            <h1>📄 <span>FileReader</span></h1>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <span class="count" id="fileCount">0 fichiers</span>
+                <a href="/" class="back-btn">🏠 Retour</a>
+            </div>
+        </div>
+
+        <!-- ===== UPLOAD ===== -->
+        <div class="upload-area">
+            <h3 style="margin-bottom: 10px;">📤 Uploader un fichier</h3>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" id="fileInput" name="file">
+                <button type="submit">📤 Uploader</button>
+            </form>
+            <span id="uploadStatus"></span>
+        </div>
+
+        <!-- ===== ZONE DE LECTURE ===== -->
+        <div class="read-area">
+            <div class="read-header">
+                <h3>📖 Lecture du fichier</h3>
+                <button id="clearContentBtn">🗑️ Effacer</button>
+            </div>
+            <div id="fileContent"></div>
+        </div>
+
+        <!-- ===== LISTE DES FICHIERS ===== -->
+        <h3 style="margin: 20px 0 10px 0;">📁 Fichiers disponibles</h3>
+        <div class="file-list" id="fileList">
+            <div class="empty">
+                <span class="icon">📭</span>
+                <h3>Aucun fichier uploadé</h3>
+                <p>Upload un fichier pour le voir apparaître ici</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // =============================================
+        // TOAST
+        // =============================================
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // =============================================
+        // AFFICHER LE CONTENU D'UN FICHIER
+        // =============================================
+        function showFileContent(filename, content) {
+            const div = document.getElementById('fileContent');
+            div.textContent = content;
+            div.className = 'show';
+            document.getElementById('fileContent').style.display = 'block';
+            showToast('📖 Fichier ' + filename + ' lu avec succès', 'success');
+        }
+
+        function clearFileContent() {
+            const div = document.getElementById('fileContent');
+            div.textContent = '';
+            div.className = '';
+            div.style.display = 'none';
+        }
+
+        document.getElementById('clearContentBtn').addEventListener('click', clearFileContent);
+
+        // =============================================
+        // LIRE UN FICHIER (via l'API)
+        // =============================================
+        function readFile(filename) {
+            showToast('⏳ Lecture de ' + filename + '...', 'info');
+
+            fetch('/api/uploads/' + filename)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Fichier non trouvé');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        showToast('❌ ' + data.error, 'error');
+                        return;
+                    }
+                    showFileContent(filename, data.content || 'Contenu vide');
+                })
+                .catch(error => {
+                    showToast('❌ Erreur: ' + error.message, 'error');
+                });
+        }
+
+        // =============================================
+        // CHARGER LA LISTE DES FICHIERS
+        // =============================================
+        function loadFiles() {
+            fetch('/api/uploads')
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('fileList');
+                    const count = document.getElementById('fileCount');
+
+                    if (data.error) {
+                        showToast('❌ ' + data.error, 'error');
+                        return;
+                    }
+
+                    count.textContent = data.count + ' fichier' + (data.count > 1 ? 's' : '');
+
+                    if (data.files.length === 0) {
+                        list.innerHTML = `
+                            <div class="empty">
+                                <span class="icon">📭</span>
+                                <h3>Aucun fichier uploadé</h3>
+                                <p>Upload un fichier pour le voir apparaître ici</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let html = '';
+                    data.files.forEach(f => {
+                        const size = (f.size / 1024).toFixed(1);
+                        const date = new Date(f.modified * 1000);
+                        const dateStr = date.toLocaleString('fr-FR');
+
+                        html += `
+                            <div class="file-item" data-filename="${f.name}">
+                                <div class="file-info">
+                                    <span class="file-name">
+                                        <a href="/uploads/${f.name}" target="_blank">📄 ${f.name}</a>
+                                    </span>
+                                    <span class="file-size">${size} KB</span>
+                                    <span class="file-date">${dateStr}</span>
+                                </div>
+                                <div class="file-actions">
+                                    <button class="btn-read" onclick="readFile('${f.name}')">📖 Lire</button>
+                                    <button class="btn-download" onclick="downloadFile('${f.name}')">⬇️</button>
+                                    <button class="btn-delete" onclick="deleteFile('${f.name}')">🗑️</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    list.innerHTML = html;
+                })
+                .catch(error => {
+                    showToast('❌ Erreur: ' + error.message, 'error');
+                });
+        }
+
+        // =============================================
+        // UPLOAD
+        // =============================================
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const status = document.getElementById('uploadStatus');
+
+            if (!file) {
+                showToast('⚠️ Sélectionne un fichier !', 'error');
+                return;
+            }
+
+            status.textContent = '⏳ Upload en cours...';
+            status.style.color = '#ff922b';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        status.textContent = '❌ ' + data.error;
+                        status.style.color = '#dc3545';
+                        showToast('❌ ' + data.error, 'error');
+                    } else {
+                        status.textContent = '✅ ' + data.message;
+                        status.style.color = '#28a745';
+                        showToast('✅ ' + data.message, 'success');
+                        fileInput.value = '';
+                        loadFiles();
+                        // Lecture automatique
+                        readFile(data.filename);
+                    }
+                })
+                .catch(error => {
+                    status.textContent = '❌ Erreur: ' + error.message;
+                    status.style.color = '#dc3545';
+                    showToast('❌ Erreur: ' + error.message, 'error');
+                });
+        });
+
+        // =============================================
+        // TÉLÉCHARGER
+        // =============================================
+        function downloadFile(filename) {
+            window.location.href = '/api/download/' + encodeURIComponent(filename);
+            showToast('⬇️ Téléchargement de ' + filename + '...', 'info');
+        }
+
+        // =============================================
+        // SUPPRIMER
+        // =============================================
+        function deleteFile(filename) {
+            if (!confirm('Supprimer le fichier ' + filename + ' ?')) return;
+
+            fetch('/api/uploads/' + filename, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showToast('❌ ' + data.error, 'error');
+                    } else {
+                        showToast('✅ ' + data.message, 'success');
+                        loadFiles();
+                        clearFileContent();
+                    }
+                })
+                .catch(error => {
+                    showToast('❌ Erreur: ' + error.message, 'error');
+                });
+        }
+
+        // =============================================
+        // INIT
+        // =============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFiles();
+            console.log('📁 FileReader - Page chargée');
+        });
+    </script>
+
+</body>
+</html>

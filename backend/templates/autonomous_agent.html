@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>🤖 Agent Autonome</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 { font-size: 2.2rem; }
+        .header p { opacity: 0.9; margin-top: 10px; }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 80px;
+        }
+        textarea:focus { outline: none; border-color: #2c5364; }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: white;
+            margin: 5px;
+            transition: 0.3s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .btn-success { background: linear-gradient(135deg, #28a745, #20c997); }
+        .btn-danger { background: #dc3545; }
+        
+        .examples {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .example-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        /* ÉTAPES */
+        .step {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease;
+        }
+        .step .number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        .step .action {
+            font-weight: 700;
+            color: #333;
+        }
+        .step .details {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            font-family: monospace;
+        }
+        .step.success { border-left-color: #28a745; background: #f0fff4; }
+        .step.error { border-left-color: #dc3545; background: #fff5f5; }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        /* LOG */
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .status.loading { background: #cce5ff; color: #004085; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Agent Autonome</h1>
+            <p>Donnez un objectif, l'agent décide et exécute tout seul</p>
+        </div>
+
+        <!-- OBJECTIF -->
+        <div class="card">
+            <h3>🎯 Quel est votre objectif ?</h3>
+            <textarea id="objectiveInput" 
+                      placeholder="Ex: Ouvre Notepad et écris 'Bonjour le monde' puis appuie sur Entrée">Ouvre Notepad, écris "Bonjour, je suis un agent autonome !" puis appuie sur Entrée et fais une capture d'écran.</textarea>
+            
+            <div class="examples">
+                <span style="font-size:0.85rem;color:#666;align-self:center;">Exemples :</span>
+                <button class="example-btn" onclick="setObjective('Ouvre Notepad et écris Bonjour')">
+                    📝 Notepad simple
+                </button>
+                <button class="example-btn" onclick="setObjective('Ouvre la calculatrice')">
+                    🔢 Calculatrice
+                </button>
+                <button class="example-btn" onclick="setObjective('Ouvre Notepad, écris un poème court sur la nature, puis fais une capture d\'écran')">
+                    🌸 Poème + capture
+                </button>
+            </div>
+            
+            <div style="margin-top:20px;">
+                <button class="btn btn-primary" onclick="planOnly()" id="planBtn">
+                    🧠 Générer le plan
+                </button>
+                <button class="btn btn-success" onclick="executeObjective()" id="executeBtn">
+                    🚀 Exécuter automatiquement
+                </button>
+            </div>
+            
+            <div id="status" class="status" style="display:none;"></div>
+        </div>
+
+        <!-- PLAN -->
+        <div class="card" id="planCard" style="display:none;">
+            <h3>📋 Plan généré par l'IA</h3>
+            <div id="planSteps"></div>
+        </div>
+
+        <!-- RÉSULTATS -->
+        <div class="card" id="resultCard" style="display:none;">
+            <h3>✅ Résultats de l'exécution</h3>
+            <div id="executionResults"></div>
+        </div>
+
+        <!-- LOG -->
+        <div class="card">
+            <h3>📋 Journal</h3>
+            <div id="log" class="log">
+<span style="color:#888;">[Prêt] En attente d'un objectif...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const colors = {
+                'info': '#44aaff',
+                'success': '#00ff44',
+                'error': '#ff4444',
+                'warn': '#ffaa00'
+            };
+            logEl.innerHTML += `<span style="color:#888;">[${time}]</span> <span style="color:${colors[type]};">${message}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function setStatus(message, type) {
+            const el = document.getElementById('status');
+            el.className = 'status ' + type;
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+
+        function setObjective(text) {
+            document.getElementById('objectiveInput').value = text;
+        }
+
+        // ============================================
+        // GÉNÉRER LE PLAN SEULEMENT
+        // ============================================
+        async function planOnly() {
+            const objective = document.getElementById('objectiveInput').value.trim();
+            if (!objective) {
+                alert('⚠️ Entrez un objectif');
+                return;
+            }
+            
+            const btn = document.getElementById('planBtn');
+            btn.disabled = true;
+            setStatus('🧠 Génération du plan...', 'loading');
+            log('🧠 Demande de plan à Ollama...', 'info');
+            
+            try {
+                const response = await fetch('/api/autonomous/plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ objective: objective })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ Plan généré: ${data.steps} étapes`, 'success');
+                    setStatus(`✅ Plan généré (${data.steps} étapes)`, 'success');
+                    displayPlan(data.plan);
+                } else {
+                    log(`❌ ${data.error}`, 'error');
+                    setStatus(`❌ ${data.error}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ ${error.message}`, 'error');
+                setStatus(`❌ ${error.message}`, 'error');
+            }
+            
+            btn.disabled = false;
+        }
+
+        // ============================================
+        // EXÉCUTER L'OBJECTIF COMPLET
+        // ============================================
+        async function executeObjective() {
+            const objective = document.getElementById('objectiveInput').value.trim();
+            if (!objective) {
+                alert('⚠️ Entrez un objectif');
+                return;
+            }
+            
+            const btn = document.getElementById('executeBtn');
+            btn.disabled = true;
+            setStatus('🚀 Exécution en cours... (cela peut prendre 1-2 minutes)', 'loading');
+            log('🚀 L\'agent autonome démarre...', 'info');
+            log('⚠️ NE TOUCHEZ PAS à la souris pendant l\'exécution !', 'warn');
+            
+            try {
+                const response = await fetch('/api/autonomous/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ objective: objective })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ Objectif atteint ! ${data.execution.success_count}/${data.execution.total_steps} actions réussies`, 'success');
+                    setStatus(`✅ Terminé avec succès !`, 'success');
+                    
+                    displayPlan(data.plan);
+                    displayResults(data.execution);
+                } else {
+                    log(`❌ ${data.error || 'Erreur'}`, 'error');
+                    setStatus(`❌ ${data.error || 'Erreur'}`, 'error');
+                    
+                    if (data.plan) displayPlan(data.plan);
+                    if (data.execution) displayResults(data.execution);
+                }
+            } catch (error) {
+                log(`❌ ${error.message}`, 'error');
+                setStatus(`❌ ${error.message}`, 'error');
+            }
+            
+            btn.disabled = false;
+        }
+
+        // ============================================
+        // AFFICHER LE PLAN
+        // ============================================
+        function displayPlan(plan) {
+            const card = document.getElementById('planCard');
+            const container = document.getElementById('planSteps');
+            
+            card.style.display = 'block';
+            container.innerHTML = plan.map((action, i) => {
+                const type = action.action;
+                const details = JSON.stringify(action);
+                return `
+                    <div class="step">
+                        <span class="number">${i + 1}</span>
+                        <span class="action">${type}</span>
+                        <div class="details">${details}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============================================
+        // AFFICHER LES RÉSULTATS
+        // ============================================
+        function displayResults(execution) {
+            const card = document.getElementById('resultCard');
+            const container = document.getElementById('executionResults');
+            
+            card.style.display = 'block';
+            
+            let html = `
+                <div style="padding:15px; background:#f8f9fa; border-radius:10px; margin-bottom:15px;">
+                    <strong>📊 Résumé :</strong> ${execution.success_count}/${execution.total_steps} actions réussies
+                </div>
+            `;
+            
+            html += execution.results.map(r => {
+                const cls = r.success ? 'success' : 'error';
+                const icon = r.success ? '✅' : '❌';
+                const action = r.action_type || 'action';
+                const details = r.error || JSON.stringify(r).substring(0, 100);
+                
+                return `
+                    <div class="step ${cls}">
+                        <span class="number">${r.step}</span>
+                        <span class="action">${icon} ${action}</span>
+                        <div class="details">${details}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+https://paluku.github.com/
+git add .
+git commit -m "https://paluku.github.com/"
+git push
+
+
+git config --global user.email "paluku.kasai@gmail.com"
+git commit -m "GITHUB"
+Vite_projet_jsx
+
+"predeploye": "npm run build"
+"deploy": "gh-pages -d dist"
+
+base:"/Vite_projet_jsx/",
+
+https://paluku.github.io/Vite_projet_jsx/
